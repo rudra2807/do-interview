@@ -34,6 +34,15 @@ export function errorHandler(
       });
       return;
     }
+    // Foreign key violation: the flag was deleted between our existence
+    // check and the write (for example, an override upsert racing a flag
+    // delete). The related resource is gone, so this is a 404, not a 500.
+    if (err.code === "P2003") {
+      res.status(404).json({
+        error: { code: "NOT_FOUND", message: "Related resource not found", details: null },
+      });
+      return;
+    }
   }
 
   console.error(err);
