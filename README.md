@@ -71,3 +71,15 @@ curl "http://localhost:3000/api/flags/checkout-redesign/evaluate?user_id=user-12
 ## CI
 
 On every push to main and every pull request, GitHub Actions runs the full check: install, generate the Prisma client, apply migrations against a throwaway postgres:16 service container, typecheck, run the test suite, and build. No lint step exists yet since there is no ESLint config in the repo, and there is no deploy job or seed step. See `.github/workflows/ci.yml`.
+
+## Known limitations and next steps
+
+- No authentication. Every endpoint is open. A production version would use hashed API keys with separate admin and evaluator scopes, plus rate limiting.
+- The evaluation cache is in-process, per instance. With more than one instance, a write on one instance cannot evict another instance's cache, so staleness across instances is bounded only by the cache's TTL, not by invalidation. A production answer would be Redis or a pub/sub based invalidation broadcast.
+- Concurrent cold reads for the same flag and user are coalesced in-process (singleflight), so this is not currently a gap, but it only helps within a single instance for the same reason as above.
+- Flag deletion is a hard delete with no recovery path and no audit log.
+- The Dev Database tier has no standby and limited backups.
+- `userId` has no length or charset validation at the API layer. The cache itself is safe regardless of what it contains (see the decision log), but nothing stops an arbitrarily long or oddly formatted value from reaching the database.
+- `GET /api/flags` is unpaginated. It returns every flag in one response.
+- No linter is configured.
+- The PRE_DEPLOY migration job exists in `.do/app.yaml` and has been verified against a real deployment: `prisma migrate deploy` ran there and applied the schema to the production Dev Database.
