@@ -8,9 +8,9 @@ export async function setOverride(req: Request, res: Response, next: NextFunctio
     const result = await overrideService.setOverride(key, userId, enabled);
     res.status(result.status).json({
       flag: key,
-      userId: result.userId,
+      user_id: result.userId,
       enabled: result.enabled,
-      updatedAt: result.updatedAt,
+      updated_at: result.updatedAt,
     });
   } catch (err) {
     next(err);

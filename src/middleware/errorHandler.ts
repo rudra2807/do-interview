@@ -4,8 +4,21 @@ import { AppError } from "../errors/AppError";
 
 export function notFoundHandler(req: Request, res: Response) {
   res.status(404).json({
-    error: { code: "NOT_FOUND", message: `No route for ${req.method} ${req.path}` },
+    error: {
+      code: "NOT_FOUND",
+      message: `No route for ${req.method} ${req.path}`,
+      details: null,
+    },
   });
+}
+
+interface BodyParserSyntaxError extends SyntaxError {
+  type?: string;
+  status?: number;
+}
+
+function isMalformedJsonError(err: unknown): err is BodyParserSyntaxError {
+  return err instanceof SyntaxError && (err as BodyParserSyntaxError).type === "entity.parse.failed";
 }
 
 export function errorHandler(
@@ -14,6 +27,13 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ) {
+  if (isMalformedJsonError(err)) {
+    res.status(400).json({
+      error: { code: "MALFORMED_JSON", message: "Request body is not valid JSON", details: null },
+    });
+    return;
+  }
+
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
       error: { code: err.code, message: err.message, details: err.details ?? null },

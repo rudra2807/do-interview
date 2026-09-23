@@ -22,7 +22,8 @@ describe("PUT /api/flags/:key/users/:userId", () => {
 
     const res = await request(app).put(`/api/flags/${key}/users/u1`).send({ enabled: true });
     expect(res.status).toBe(201);
-    expect(res.body.enabled).toBe(true);
+    expect(res.body).toMatchObject({ flag: key, user_id: "u1", enabled: true });
+    expect(res.body.updated_at).toBeDefined();
   });
 
   it("returns 200 when updating an existing override", async () => {

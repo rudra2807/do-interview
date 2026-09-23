@@ -19,12 +19,11 @@ export async function setOverride(
     throw new NotFoundError(`Flag '${flagKey}' not found`);
   }
 
-  const override = await overrideRepository.upsertOverride(flag.id, userId, enabled);
-  // A single upsert call cannot itself report whether it inserted or updated.
-  // On insert, createdAt and updatedAt are set from the same write, so equal
-  // timestamps mean this was a create; this avoids a separate find-then-act
-  // check that would race with a concurrent write.
-  const wasCreated = override.createdAt.getTime() === override.updatedAt.getTime();
+  const { wasCreated, override } = await overrideRepository.upsertOverride(
+    flag.id,
+    userId,
+    enabled
+  );
 
   return {
     status: wasCreated ? 201 : 200,
@@ -42,6 +41,13 @@ export async function removeOverride(flagKey: string, userId: string): Promise<v
 
   const result = await overrideRepository.deleteOverride(flag.id, userId);
   if (result.count === 0) {
+    // The flag may have been deleted (cascading away the override) between
+    // the check above and this delete. Re-check so the error message
+    // reflects the real cause instead of always blaming a missing override.
+    const stillExists = await flagRepository.findByKey(flagKey);
+    if (!stillExists) {
+      throw new NotFoundError(`Flag '${flagKey}' not found`);
+    }
     throw new NotFoundError(`No override for user '${userId}' on flag '${flagKey}'`);
   }
 }
