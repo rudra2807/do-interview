@@ -4,6 +4,7 @@ import { z } from "zod";
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.string().min(1),
+  DATABASE_CONNECTION_LIMIT: z.coerce.number().int().positive().default(5),
   CACHE_TTL_MS: z.coerce.number().int().positive().default(30_000),
   CACHE_MAX_ENTRIES: z.coerce.number().int().positive().default(5000),
 });
@@ -17,6 +18,7 @@ if (!parsed.success) {
 export const env = {
   port: parsed.data.PORT,
   databaseUrl: parsed.data.DATABASE_URL,
+  databaseConnectionLimit: parsed.data.DATABASE_CONNECTION_LIMIT,
   cacheTtlMs: parsed.data.CACHE_TTL_MS,
   cacheMaxEntries: parsed.data.CACHE_MAX_ENTRIES,
 };
