@@ -47,7 +47,7 @@ describe("GET /api/flags/:key/evaluate", () => {
     expect(res.body).toMatchObject({ enabled: false, reason: "global" });
   });
 
-  it("reflects a PATCH to the flag immediately, with no cache to go stale", async () => {
+  it("reflects a PATCH to the flag immediately (invalidation keeps the cache from going stale)", async () => {
     const key = `${KEY_PREFIX}patch-reflect`;
     await request(app).post("/api/flags").send({ key, name: "Patch reflect", defaultEnabled: false });
 

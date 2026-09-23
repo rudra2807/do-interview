@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import * as flagService from "../services/flagService";
-import * as evaluationService from "../services/evaluationService";
+import { flagService, evaluationService } from "../container";
 import { EvaluateQuery } from "../validation/flagSchemas";
 
 export async function create(req: Request, res: Response, next: NextFunction) {

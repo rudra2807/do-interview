@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import * as overrideService from "../services/overrideService";
+import { overrideService } from "../container";
 
 export async function setOverride(req: Request, res: Response, next: NextFunction) {
   try {
